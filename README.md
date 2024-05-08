@@ -3,11 +3,15 @@ Pretty printer designed for function types
 
 ## Example
 
-```julia
-julia> incr(x::Int) = x + 1
-incr (generic function with 1 method)
+This example uses `ast_transform` function to add type printing on each repl input.
+To add such extension to the repl look at my [`startup.jl`](https://github.com/kwasielewski/dotfiles/blob/main/Julia/startup.jl) file.
 
-julia> @type incr
-Int64 -> Int64
-typeof(incr) (singleton type of function incr, subtype of Function)
+```julia
+julia> addTwo(x::Int, y::Int) = x + y
+Int64 * Int64 -> Int64
+addTwo (generic function with 1 method)
+
+julia> addTwo
+Int64 * Int64 -> Int64
+addTwo (generic function with 1 method)
 ```
