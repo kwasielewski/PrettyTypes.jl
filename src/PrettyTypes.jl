@@ -6,10 +6,13 @@ macro type(exp)
 	quote
 		tp = typeof($(esc(exp)))
 		if tp <: Function
-			mtds = methods($(esc(exp)), @__MODULE__)
+			mtds = methods($(esc(exp)))
 			if length(mtds) == 1
 				signature = mtds[1].sig.types[2:end]
 				rettp = Base.return_types($(esc(exp)), signature)
+				if length(signature) == 0
+					signature = ["()"]
+				end
 				if length(rettp) == 1
 					println(join(signature, ", "),
 						" -> ",
