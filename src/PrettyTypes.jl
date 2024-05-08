@@ -8,13 +8,26 @@ macro type(exp)
 		if tp <: Function
 			mtds = methods($(esc(exp)))
 			if length(mtds) == 1
-				signature = mtds[1].sig.types[2:end]
+				constraints = [] 
+				if mtds[1].sig isa DataType
+					signature = mtds[1].sig.types[2:end]
+					print_signature = signature
+				elseif mtds[1].sig isa UnionAll
+					push!(constraints, mtds[1].sig.body.parameters[2])
+					signature = mtds[1].sig.body.parameters[2:end]
+					print_signature = getproperty.(signature, (:name,))
+				else
+					return tp
+				end
 				rettp = Base.return_types($(esc(exp)), signature)
 				if length(signature) == 0
-					signature = ["()"]
+					print_signature = ["()"]
 				end
 				if length(rettp) == 1
-					println(join(signature, " * "),
+					if length(constraints) > 0
+						print("[", join(constraints, ", "), "] => ")
+					end
+					println(join(print_signature, " * "),
 						" -> ",
 						rettp[1])
 				end
