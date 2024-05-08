@@ -14,7 +14,7 @@ macro type(exp)
 					signature = ["()"]
 				end
 				if length(rettp) == 1
-					println(join(signature, ", "),
+					println(join(signature, " * "),
 						" -> ",
 						rettp[1])
 				end
@@ -22,6 +22,10 @@ macro type(exp)
 		end
 		tp
 	end
+end
+
+function ast_transform(e::Expr, m::Module)
+	return Expr(:block, quote (macroexpand($m, @type macroexpand($m, $e))) end, e)
 end
 
 end # module PrettyTypes
