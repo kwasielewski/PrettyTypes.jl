@@ -1,0 +1,4 @@
+name = "PrettyTypes"
+uuid = "ccc97f76-4628-4082-a75d-8cd85416b48d"
+authors = ["Krzysztof Wasielewski <krzychuwas@gmail.com>"]
+version = "0.1.0"
