@@ -2,6 +2,9 @@ module PrettyTypes
 
 export @type
 
+union_types(x::Union) = (x.a, union_types(x.b)...)
+union_types(x::Type) = (x,)
+
 macro type(exp)
     quote
         tp = typeof($(esc(exp)))
@@ -27,7 +30,21 @@ macro type(exp)
                     if length(constraints) > 0
                         print("[", join(constraints, ", "), "] => ")
                     end
-                    println(join(print_signature, " * "), " -> ", rettp[1])
+					has_union = any(x -> x isa Union, print_signature)
+					if has_union
+						println("{")
+						print_signature = map(x -> union_types(x), print_signature)
+						for t in Iterators.product(print_signature...)
+							rettp = Base.return_types($(esc(exp)), t)
+							if length(rettp) != 1
+								@warn "Multiple return types for signature: ", join(t, " * ")
+							end
+							println(join(t, " * "), " -> ", rettp[1])
+						end
+						println("}")
+					else
+                    	println(join(print_signature, " * "), " -> ", rettp[1])
+					end
                 end
             end
         end
