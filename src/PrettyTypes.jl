@@ -3,7 +3,7 @@ module PrettyTypes
 export @type
 
 union_types(x::Union) = (x.a, union_types(x.b)...)
-union_types(x::Type) = (x,)
+union_types(x) = (x,)
 
 macro type(exp)
     quote
@@ -18,7 +18,8 @@ macro type(exp)
                 elseif mtds[1].sig isa UnionAll
                     push!(constraints, mtds[1].sig.body.parameters[2])
                     signature = mtds[1].sig.body.parameters[2:end]
-                    print_signature = getproperty.(signature, (:name,))
+					get_or_id = x -> hasproperty(x, :name) ? x.name : x
+                    print_signature = get_or_id.(signature)
                 end
 
                 rettp = Base.return_types($(esc(exp)), signature)
@@ -27,11 +28,12 @@ macro type(exp)
                     print_signature = ["()"]
                 end
                 if length(rettp) == 1
-                    if length(constraints) > 0
+					has_union = any(x -> x isa Union, print_signature)
+					has_tvar = any(x -> x isa Symbol, print_signature)
+                    if length(constraints) > 0 && !has_union
                         print("[", join(constraints, ", "), "] => ")
                     end
-					has_union = any(x -> x isa Union, print_signature)
-					if has_union
+					if has_union && !has_tvar
 						println("{")
 						print_signature = map(x -> union_types(x), print_signature)
 						for t in Iterators.product(print_signature...)
@@ -42,7 +44,7 @@ macro type(exp)
 							println(join(t, " * "), " -> ", rettp[1])
 						end
 						println("}")
-					else
+					elseif !has_union
                     	println(join(print_signature, " * "), " -> ", rettp[1])
 					end
                 end
